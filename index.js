@@ -8,62 +8,61 @@ const files = require('./lib/files');
 const github = require('./lib/github');
 const repo = require('./lib/repo');
 
+// 清除命令行
 clear();
 
-console.log(
-  chalk.yellow(
-    figlet.textSync('Ginit', { horizontalLayout: 'full' })
-  )
-);
+// 输出Logo
+console.log(chalk.yellow(figlet.textSync('Ginit', { horizontalLayout: 'full' })));
 
+// 判断是否存在.git文件
 if (files.directoryExists('.git')) {
-  console.log(chalk.red('Already a Git repository!'));
-  process.exit();
+    console.log(chalk.red('已经存在一个本地仓库!'));
+    process.exit();
 }
 
+// 获取github token
 const getGithubToken = async () => {
-  // Fetch token from config store
-  let token = github.getStoredGithubToken();
-  if(token) {
+    // 从本地获取token记录
+    let token = github.getStoredGithubToken();
+    if (token) {
+        return token;
+    }
+
+    // 通过账号、密码获取token
+    token = await github.getPersonalAccessToken();
     return token;
-  }
-
-  // No token found, use credentials to access GitHub account
-  token = await github.getPersonalAccesToken();
-
-  return token;
 };
 
 const run = async () => {
-  try {
-    // Retrieve & Set Authentication Token
-    const token = await getGithubToken();
-    github.githubAuth(token);
+    try {
+        // 获取token
+        const token = await getGithubToken();
+        github.githubAuth(token);
 
-    // Create remote repository
-    const url = await repo.createRemoteRepo();
+        // 创建远程仓库
+        const url = await repo.createRemoteRepo();
 
-    // Create .gitignore file
-    await repo.createGitignore();
+        // 创建 .gitignore
+        await repo.createGitignore();
 
-    // Set up local repository and push to remote
-    await repo.setupRepo(url);
+        // 初始化本地仓库并推送到远端
+        await repo.setupRepo(url);
 
-    console.log(chalk.green('All done!'));
-  } catch(err) {
-      if (err) {
-        switch (err.status) {
-          case 401:
-            console.log(chalk.red('Couldn\'t log you in. Please provide correct credentials/token.'));
-            break;
-          case 422:
-            console.log(chalk.red('There is already a remote repository or token with the same name'));
-            break;
-          default:
-            console.log(chalk.red(err));
+        console.log(chalk.green('All done!'));
+    } catch (err) {
+        if (err) {
+            switch (err.status) {
+                case 401:
+                    console.log(chalk.red("登陆失败，请提供正确的登陆信息"));
+                    break;
+                case 422:
+                    console.log(chalk.red('远端已存在同名仓库'));
+                    break;
+                default:
+                    console.log(chalk.red(err));
+            }
         }
-      }
-  }
+    }
 };
 
 run();
