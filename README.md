@@ -4,6 +4,7 @@ Node is a great choice for building command line tools.
 In this tutorial, James Hibbard and Lukas White show you how to build a Node CLI which interacts with the GitHub API.
 
 Article URL: https://www.sitepoint.com/javascript-command-line-interface-cli-node-js/
+中文 URL: https://zhuanlan.zhihu.com/p/142933475
 
 ## Requirements
 
